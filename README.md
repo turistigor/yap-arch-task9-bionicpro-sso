@@ -18,3 +18,45 @@
 
 ![](./arch/c4_containers_to_be.png)
 
+### Задача 2. Улучшите безопасность существующего приложения, заменив Code Grant на PKCE.
+
+Для включения PKCE были проделаны следующие действия:
+
+- включение для клиента reports-frontend в админке keycloak
+
+![](./pictures/auth_pkce_keycloak_admin_panel.png)
+
+- включение со стороны клиента через параметры ReactKeycloakProvider
+
+[Исходники](./frontend/src/App.tsx)
+
+```ts
+const App: React.FC = () => {
+  return (
+    <ReactKeycloakProvider
+      authClient={keycloak}
+      initOptions={{
+        onLoad: 'login-required',
+        pkceMethod: 'S256'
+      }}
+    >
+      <div className="App">
+        <ReportPage />
+      </div>
+    </ReactKeycloakProvider>
+  );
+};
+```
+
+Как запрос аутентификации выглядел до включения PKCE:
+
+![](./pictures/auth_init.png)
+
+Как запрос аутентификации выглядел после включения PKCE:
+- отправка code_challenge
+
+![](./pictures/auth_pkce.png)
+
+- отправка code_verifier
+
+![](./pictures/auth_pkce_token.png)
