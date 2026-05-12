@@ -22,6 +22,8 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak_db:5432/keycloak_db
       KC_DB_USERNAME: keycloak_user
       KC_DB_PASSWORD: keycloak_password
+      KC_HOSTNAME: localhost                                     # return http://localhost to the browsaer instead of http://keycloak
+      KC_HOSTNAME_STRICT_BACK_CHANNEL: "false"                   # allow to use KC_HOSTNAME
     command: 
       - start-dev
       - --import-realm
@@ -40,9 +42,52 @@ services:
       - "3000:3000"
     environment:
       REACT_APP_API_URL: http://localhost:8000
-      REACT_APP_KEYCLOAK_URL: http://localhost:8080
+      REACT_APP_REPORTS_URL: http://localhost:8001
       REACT_APP_KEYCLOAK_REALM: reports-realm
       REACT_APP_KEYCLOAK_CLIENT_ID: reports-frontend
 
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      SESSION_SECRET_KEY: ${SESSION_SECRET_KEY}
+      TOKEN_ENCRYPT_KEY: ${TOKEN_ENCRYPT_KEY}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_URL: redis://redis:6379
+      AUTH_HOST: localhost
+      AUTH_PORT: 8000
+    depends_on:
+      - redis
+
+  reports:
+    build:
+      context: ./reports
+      dockerfile: Dockerfile
+    ports:
+      - 8001:8001
+    environment:
+      SESSION_SECRET_KEY: ${SESSION_SECRET_KEY}
+      REPORTS_PORT: 8001
+      AUTH_HOST: auth
+      AUTH_PORT: 8000
+    depends_on:
+      - auth
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: sh -c "redis-server --requirepass $$REDIS_PASSWORD --maxmemory 256mb --maxmemory-policy allkeys-lru"
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redisdata:/data
+
 volumes:
   pgdata:
+  redisdata:
