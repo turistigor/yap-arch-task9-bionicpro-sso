@@ -82,7 +82,7 @@ async def callback(
 
     access_token = token_data[auth.ACCESS_TOKEN_FIELD]
     session_id = await auth.create_session(token_data)
-    user_info = await _get_user_info(access_token, keycloak_oid)
+    user_info = await _get_user_claims(access_token, keycloak_oid)
 
     return _create_callback_response(user_info, session_id)
 
@@ -121,7 +121,7 @@ async def user_info(
     if not session_id:
         response.status_code=sc.HTTP_401_UNAUTHORIZED
         return
-    
+
     keycloak_oid = request.app.state.keycloak_oid
     valid_session_id = await _get_valid_session(session_id, keycloak_oid)
     if valid_session_id != session_id:
@@ -199,20 +199,11 @@ async def _get_user_claims(
         'roles'             : token_data['realm_access']['roles'],
         'user_id'           : token_data['sub'],
         'name'              : token_data['name'],
-        'preferred_username': token_data['preferred_username'],
-        'given_name'        : token_data['given_name'],
-        'family_name'       : token_data['family_name'],
+        'preferred_username': token_data.get('preferred_username', ''),
+        'given_name'        : token_data.get('given_name', ''),
+        'family_name'       : token_data.get('family_name', ''),
         'email'             : token_data['email'],
     }
-
-
-async def _get_user_info(
-    access_token: str, keycloak_oid: KeycloakOpenID,
-) -> Optional[str]:
-    try:
-        return await keycloak_oid.a_userinfo(access_token)
-    except KeycloakError as ex:
-        logger.error(f'User info getting error: {ex}')
 
 
 async def _refresh_token(refresh_token: str, keycloak_oid: KeycloakOpenID) -> Optional[str]:

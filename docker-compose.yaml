@@ -12,6 +12,13 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak_user -d keycloak_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - bionicpro
 
   keycloak:
     image: quay.io/keycloak/keycloak:21.1
@@ -22,17 +29,22 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak_db:5432/keycloak_db
       KC_DB_USERNAME: keycloak_user
       KC_DB_PASSWORD: keycloak_password
-      KC_HOSTNAME: localhost                                     # return http://localhost to the browsaer instead of http://keycloak
+      KC_HOSTNAME: localhost                                     # return http://localhost to the browser instead of http://keycloak
       KC_HOSTNAME_STRICT_BACK_CHANNEL: "false"                   # allow to use KC_HOSTNAME
     command: 
       - start-dev
       - --import-realm
     volumes:
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/keycloak-results-export.json:/opt/keycloak/data/import/realm-export.json
     ports:
       - "8080:8080"
     depends_on:
-      - keycloak_db
+      keycloak_db:
+        condition: service_healthy
+      openldap:
+        condition: service_started
+    networks:
+      - bionicpro
 
   frontend:
     build:
@@ -45,6 +57,8 @@ services:
       REACT_APP_REPORTS_URL: http://localhost:8001
       REACT_APP_KEYCLOAK_REALM: reports-realm
       REACT_APP_KEYCLOAK_CLIENT_ID: reports-frontend
+    networks:
+      - bionicpro
 
   auth:
     build:
@@ -62,6 +76,8 @@ services:
       AUTH_PORT: 8000
     depends_on:
       - redis
+    networks:
+      - bionicpro
 
   reports:
     build:
@@ -76,6 +92,8 @@ services:
       AUTH_PORT: 8000
     depends_on:
       - auth
+    networks:
+      - bionicpro
 
   redis:
     image: redis:7-alpine
@@ -87,7 +105,35 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - redisdata:/data
+    networks:
+      - bionicpro
+
+  openldap:
+    image: osixia/openldap:1.5.0
+    environment:
+      LDAP_ORGANISATION: "bionicpro"
+      LDAP_DOMAIN: "example.com"
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_CONFIG_PASSWORD: "config"
+    volumes:
+      # - ./ldap/config.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/config.ldif
+      - ./ldap/config.ldif:/container/service/slapd/assets/config/bootstrap/ldif/01-users.ldif
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+    ports:
+      - "389:389"
+      - "636:636"
+    command: --copy-service
+    networks:
+      - bionicpro
 
 volumes:
   pgdata:
   redisdata:
+  ldap_data:
+  ldap_config:
+
+networks:
+  bionicpro:
+    name: bionicpro
+    driver: bridge

@@ -2,6 +2,7 @@ import { Cookie } from 'universal-cookie';
 
 export interface UserInfo {
     sub: string;
+    roles: string[];
     name: string;
     preferred_username: string;
     given_name: string;

@@ -131,3 +131,20 @@ TTL:
 Ротация session_id осуществляется при смене access_token-а. TTL access_token мало, потому ротацию с таким таймаутом считаю достаточной для защиты от session fixation attack.
 
 Замены access_token и session_id происходят без участия пользователя.
+
+### Задача 4. Добавьте LDAP для возможности получения данных о пользователях представительства BionicPRO в другой стране.
+
+Настройка интеграции и mapping ролей произведены через web-интерфейс Keycloak.
+
+Проведенная настройка для интеграции Keycloak c LDAP показана на скринах:
+
+![](./pictures/keycloak-ldap-conection.png)
+
+![](./pictures/keycloak-ldap-conection2.png)
+
+Так как имена ролдей в LDAP и Keycloak имеют одинаковое написание, выбран role-ldap-mapper.  
+Настройки на скрине ниже:
+
+![](./pictures/keycloak-ldap-roles-mapping.png)
+
+Результат содержится в экспортированном [keycloak-results-export.json](keycloak/keycloak-results-export.json).
