@@ -148,3 +148,19 @@ TTL:
 ![](./pictures/keycloak-ldap-roles-mapping.png)
 
 Результат содержится в экспортированном [keycloak-results-export.json](keycloak/keycloak-results-export.json).
+
+
+#### Задача 5. Настройте MFA.
+
+Настройка через web-интерфейс Keycloak представлена на скринах.
+
+
+Authentication -> Flows (tab) -> browser
+
+![](pictures/keycloak-otp.png)
+
+Authentication -> Required actions
+
+![](pictures/keycloak-otp2.png)
+
+Результат содержится в экспортированном [keycloak-results-export.json](keycloak/keycloak-results-export.json).
