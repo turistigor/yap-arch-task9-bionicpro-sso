@@ -142,7 +142,7 @@ TTL:
 
 ![](./pictures/keycloak-ldap-conection2.png)
 
-Так как имена ролдей в LDAP и Keycloak имеют одинаковое написание, выбран role-ldap-mapper.  
+Так как имена ролей в LDAP и Keycloak имеют одинаковое написание, выбран role-ldap-mapper.  
 Настройки на скрине ниже:
 
 ![](./pictures/keycloak-ldap-roles-mapping.png)
@@ -150,7 +150,7 @@ TTL:
 Результат содержится в экспортированном [keycloak-results-export.json](keycloak/keycloak-results-export.json).
 
 
-#### Задача 5. Настройте MFA.
+### Задача 5. Настройте MFA.
 
 Настройка через web-интерфейс Keycloak представлена на скринах.
 
@@ -164,3 +164,33 @@ Authentication -> Required actions
 ![](pictures/keycloak-otp2.png)
 
 Результат содержится в экспортированном [keycloak-results-export.json](keycloak/keycloak-results-export.json).
+
+### Задача 6. Добавьте OAuth 2.0 от Яндекс ID.
+
+Для реализации необходимо:
+- создать Identity Provider в Keycloak,
+- добавить ваше приложение в [Yandex ID OAuth](https://oauth.yandex.ru/).
+
+**Настройка через web-интерфейс Keycloak представлена на скринах.**
+
+Redirect URI должен быть таким же как в Yandex ID OAuth. Alias является частью, формирующей  Redirect URI.
+
+![](pictures/keycloak-oauth-yandex-id.png)
+
+Client ID и Client Secret выдаются в Yandex ID OAuth при регистрации своего приложения.
+
+![](pictures/keycloak-oauth-yandex-id-2.png)
+
+![](pictures/keycloak-oauth-yandex-id-3.png)
+
+![](pictures/keycloak-oauth-yandex-id-4.png)
+
+**Настройки в Yandex ID OAuth представлены на скринах.**
+
+Redirect URI должен быть таким же как в Keycloak.
+
+![](pictures/keycloak-oauth-yandex-id-5.png)
+
+Результат содержится в экспортированном [keycloak-results-export.json](keycloak/keycloak-results-export.json).
+
+Для работы необходимо заполнить identityProviders -> yandex -> clientId & clientSecret вашими учетными данными, полученными в [Yandex ID OAuth](https://oauth.yandex.ru/) при регистрации приложения.
