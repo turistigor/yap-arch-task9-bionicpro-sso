@@ -194,3 +194,10 @@ Redirect URI должен быть таким же как в Keycloak.
 Результат содержится в экспортированном [keycloak-results-export.json](keycloak/keycloak-results-export.json).
 
 Для работы необходимо заполнить identityProviders -> yandex -> clientId & clientSecret вашими учетными данными, полученными в [Yandex ID OAuth](https://oauth.yandex.ru/) при регистрации приложения.
+
+
+## Задание 2. Разработка сервиса отчётов.
+
+### Задача 1. Создать архитектуру решения для подготовки и получения отчётов.
+
+![](/arch/c4_containers_to_be_olap.png)
