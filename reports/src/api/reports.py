@@ -1,14 +1,18 @@
+from datetime import date
 import json
 import logging
-from datetime import datetime
+from os import environ
 from typing import Optional
 
 import starlette.status as sc
-from fastapi import Cookie, HTTPException
+from fastapi import Cookie, Query
+from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRouter, Response
 from httpx import AsyncClient
 
 import src.api.urls as urls
+from src.olap import get_report_data
+from src.report import create_html_report
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +22,15 @@ COOKIE_SESSION = 'session_id'
 COOKIE_USER = 'user'
 BROWSER_SESSION_TTL = 10*60
 
+OLAP_CONNECTION_STR = environ.get('OLAP_CONNECTION_STR')
+OLAP_TABLE_NAME = 'reports'
+
 
 @auth_router.api_route(path='/reports')
 async def reports(
-    response: Response, session_id: Optional[str]=Cookie(None),
+    response: Response,
+    period: Optional[date]=Query(date.today()),
+    session_id: Optional[str]=Cookie(None),
 ):
     if not session_id:
         return Response(status_code=sc.HTTP_401_UNAUTHORIZED)
@@ -47,15 +56,19 @@ async def reports(
         return
 
     user_claims = json.loads(auth_response.text)
-    return await _create_user_report(user_claims)
+
+    report = await _create_user_report(user_claims, period)
+    return HTMLResponse(content=report)
 
 
-async def _create_user_report(user_claims: dict):
-    dt = datetime.now()
-    return (
-        f'*** Report for the {user_claims["name"]} ***\n'
-        f'Created at: {dt}\n'
-        f'Creator: {user_claims["user_id"]}\n'
-        f'\n -------------------------- \n'
-        f'<report content>'
+async def _create_user_report(user_claims: dict, period: date):
+    report_data = await get_report_data(
+        olap_conn_str=OLAP_CONNECTION_STR,
+        olap_table_name=OLAP_TABLE_NAME,
+        user_name=user_claims['preferred_username'],
+        period=period,
+    )
+
+    return create_html_report(
+        user_claims['name'], user_claims['user_id'], report_data, period,
     )

@@ -34,6 +34,21 @@
 					"endsPattern": ".*(Compiled successfully|Local:).*"
 				}
 			}
-		}
+		},
+		{
+            "label": "Airflow DB init",
+            "type": "shell",
+			"command": "${command:python.interpreterPath} -m airflow db migrate",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+			"options": {
+				"env": {
+					"AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow_user:airflow_pass@localhost:5432/airflow"
+				}
+			}
+        }
 	]
 }

@@ -1,6 +1,9 @@
 import asyncio as aio
+from contextlib import asynccontextmanager
+import json
 import logging
 from os import environ
+from typing import AsyncGenerator
 
 import uvicorn
 from dotenv import load_dotenv
@@ -20,8 +23,13 @@ load_dotenv('../.env')
 SESSION_SECRET_KEY = environ.get('SESSION_SECRET_KEY')
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    yield
+
 async def main():
-    app = FastAPI()
+
+    app = FastAPI(lifespan=lifespan)
 
     _setup_routers(app)
     _setup_middleware(app)

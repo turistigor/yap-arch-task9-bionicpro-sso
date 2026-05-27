@@ -4,5 +4,6 @@
 *__pycache__*
 
 auth/.venv
-.env
 reports/.venv
+data_pipeline/.venv
+.env
