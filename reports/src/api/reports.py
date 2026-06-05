@@ -13,6 +13,7 @@ from httpx import AsyncClient
 import src.api.urls as urls
 from src.olap import get_report_data
 from src.report import create_html_report
+from src.s3 import check_s3_exists, get_s3_key, save_to_s3
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,13 @@ BROWSER_SESSION_TTL = 10*60
 OLAP_CONNECTION_STR = environ.get('OLAP_CONNECTION_STR')
 OLAP_TABLE_NAME = 'reports'
 
+S3_URL = environ.get('S3_URL')
+S3_ACCES_KEY = environ.get('S3_ACCESS_KEY')
+S3_SECRET_KEY = environ.get('S3_SEKRET_KEY')
+S3_BUCKET = 'reports'
+
+CDN_URL = environ.get('CDN_URL')
+
 
 @auth_router.api_route(path='/reports')
 async def reports(
@@ -35,6 +43,31 @@ async def reports(
     if not session_id:
         return Response(status_code=sc.HTTP_401_UNAUTHORIZED)
 
+    user_claims = await _get_user_claims(response, session_id)
+    if user_claims is None:
+        return
+    
+    s3_key = get_s3_key(user_claims['user_id'], period)
+    report_exists = await check_s3_exists(s3_key, S3_URL, S3_ACCES_KEY, S3_SECRET_KEY, S3_BUCKET)
+    if report_exists is True:
+        return {
+            'cdn_url': _get_cdn_url(s3_key, S3_BUCKET)
+        }
+
+    report = await _create_user_report(user_claims, period)
+
+    await save_to_s3(s3_key, S3_URL, S3_ACCES_KEY, S3_SECRET_KEY, S3_BUCKET, report)
+
+    return {
+        'cdn_url': _get_cdn_url(s3_key, S3_BUCKET)
+    }
+
+
+def _get_cdn_url(s3_key: str, bucket: str) -> str:
+    return f'{CDN_URL}/{bucket}/{s3_key}'
+
+
+async def _get_user_claims(response: Response, session_id: str) -> dict | None:
     async with AsyncClient() as http:
         url = f'{urls.USER_INFO_URL}?session_id={session_id}'
         auth_response = await http.get(url)
@@ -55,10 +88,7 @@ async def reports(
         response.status_code=sc.HTTP_401_UNAUTHORIZED
         return
 
-    user_claims = json.loads(auth_response.text)
-
-    report = await _create_user_report(user_claims, period)
-    return HTMLResponse(content=report)
+    return json.loads(auth_response.text)
 
 
 async def _create_user_report(user_claims: dict, period: date):

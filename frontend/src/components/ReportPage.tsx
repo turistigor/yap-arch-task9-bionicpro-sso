@@ -87,7 +87,9 @@ const ReportPage: React.FC = () => {
             }
         }
         else {
-            setReport(`${await response.text()}`)
+            const data = await response.json();
+            const htmlResponse = await fetch(data.cdn_url);
+            setReport(`${await htmlResponse.text()}`)
         }
     };
 
