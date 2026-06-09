@@ -3,7 +3,7 @@ from os import environ
 
 from airflow.sdk import dag, task, get_current_context
 
-from crm import get_users_data
+from users import get_users_data
 from report import load_report, transform_crm_data, transform_tm_data
 from telemetry import Influxdb3ClientContext, fill_telemetry_db, get_telemetry
 
@@ -13,10 +13,10 @@ TM_DB_ROW_DATA = environ.get('TM_DB_DATA')
 TM_DB_NAME = 'bionicpro'
 TM_DB_MEASURE_NAME = 'prosthetics'
 
-CRM_CONNECTION_STR = environ.get('CRM_CONNECTION_STR')
-
 OLAP_CONNECTION_STR = environ.get('OLAP_CONNECTION_STR')
-OLAP_TABLE_NAME = 'reports'
+OLAP_DB_NAME = 'bionicpro'
+OLAP_REPORTS_TABLE = 'reports'
+OLAP_REPORTS_MART = 'reports_mart'
 
 tz = timezone(timedelta(hours=3))
 start_dt = datetime(2026, 6, 3, 0, 0, 0, tzinfo=tz)
@@ -43,7 +43,11 @@ async def extract_tm_data():
 
 @task
 async def extract_crm_data():
-    return await get_users_data(CRM_CONNECTION_STR)
+    return await get_users_data(
+        olap_conn_str=OLAP_CONNECTION_STR,
+        olap_db_name=OLAP_DB_NAME,
+        users_olap_table=OLAP_REPORTS_MART,
+    )
 
 
 @task
@@ -83,7 +87,7 @@ def prosthetic_report_dag():
         tm_data=tm_data,
         crm_data=crm_data,
         olap_conn_str=OLAP_CONNECTION_STR,
-        olap_table_name=OLAP_TABLE_NAME,
+        olap_table_name=OLAP_REPORTS_TABLE,
     )
 
 
