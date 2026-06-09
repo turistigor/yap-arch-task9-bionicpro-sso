@@ -1,0 +1,74 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "frontend-dbg",
+            "request": "launch",
+            "type": "chrome",
+            "port": 9229,
+            "url": "http://localhost:3000",
+            "smartStep": true,
+            "webRoot": "${workspaceFolder}/frontend/src/",
+            "sourceMaps": true
+        },
+        {
+            "name": "frontend-release",
+            "request": "launch",
+            "type": "chrome",
+            "port": 9229,
+            "url": "http://localhost:3000",
+            "smartStep": true,
+            "webRoot": "${workspaceFolder}/frontend/src/",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*": "${webRoot}/*"
+            }
+        },
+        {
+            "name": "auth",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd":"${workspaceFolder}/auth",
+            "module": "src",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "reports",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd":"${workspaceFolder}/reports",
+            "module": "src",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+        },
+        {
+            "name": "report DAG",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/data_pipeline",
+            "module": "airflow",
+            "args": [
+                "dags",
+                "test",
+                "prosthetic_report_dag"
+            ],
+            "preLaunchTask": "Airflow DB init",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "AIRFLOW__CORE__DAGS_FOLDER": "${workspaceFolder}/data_pipeline/dags",
+                "AIRFLOW__CORE__EXECUTOR": "DebugExecutor",
+                "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow_user:airflow_pass@localhost:5432/airflow",
+                "AIRFLOW__API__SECRET_KEY":"ZwDf_4dHL73GzD5HfdVEPJSirfOxWkPvp4U8VmSD0C0jS-_pRw2PD492KjSe5eE4ChHlSWvBjzyxdj-gayyzWw",
+                "AIRFLOW__API_AUTH__JWT_SECRET": "ZwDf_4dHL73GzD5HfdVEPJSirfOxWkPvp4U8VmSD0C0jS-_pRw2PD492KjSe5eE4ChHlSWvBjzyxdj-gayyzWw",
+                "AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS": "True",
+                "TM_DB_URL": "http://localhost:8181",
+                "TM_DB_TOKEN_FILE": "../telemetry_db/static_token.json",
+                "TM_DB_DATA": "../telemetry_db/data.csv"
+            }
+        }
+    ]
+}

@@ -1,2 +1,9 @@
 /postgres-keycloak-data
 2024__yandex-architecture-sso.code-workspace
+
+*__pycache__*
+
+auth/.venv
+reports/.venv
+data_pipeline/.venv
+.env*
