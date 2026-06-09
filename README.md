@@ -35,8 +35,6 @@
 
 - включение со стороны клиента через параметры ReactKeycloakProvider
 
-[Исходники](./frontend/src/App.tsx)
-
 ```ts
 const App: React.FC = () => {
   return (
@@ -92,6 +90,10 @@ docker compose up -d
 
 Интеграция реализована при помощи библиотеки [python-keycloak](https://pypi.org/project/python-keycloak/).  
 
+Диаграмма последовательности реализованного процесса аутентификации.
+
+![](./pictures/auth_back_pkce_sequence.png)
+
 1. Пользовательский запрос на аутентификацию (/login) перенаправляется в Keycloak с:
    - code_challenge и state в query для последующего возврата после успешной аутентификации;
    - code_verifier и state в Secure, HttpOnly cookies (через [starlet.SessionMiddleware](https://starlette.dev/middleware/#sessionmiddleware)), зашифрованные при помощи SESSION_SECRET_KEY как эталонные значения для проверки в /callback после успешной аутентификации (cookie session в Response headers).
@@ -101,21 +103,16 @@ docker compose up -d
 2. Пользователь получает и заполняет форму аутентификации, после чего отправляет её в Keycloak.
 
 3. Успешная аутентификация перенаправляется в /callback с ранее переданными state и полученным от Keycloak code:
-  - сервис проверяет совпадение state из query со state из cookie;
-  - сервис отправляет запрос в Keycloak для получения токенов в обмен на code (из query) и code_verifier (из cookie);
-  - создается сессия (с сохранением в Redis), содержащая токены и информацию о них;
-  - фронтенду возвращается session_id (Secure, HttpOnly cookie) и презентационные сведения о пользователе (имена, почта и т.д.).
+   - сервис проверяет совпадение state из query со state из cookie;
+   - сервис отправляет запрос в Keycloak для получения токенов в обмен на code (из query) и code_verifier (из cookie);
+   - создается сессия (с сохранением в Redis), содержащая токены и информацию о них;
+   - фронтенду возвращается session_id (Secure, HttpOnly cookie) и презентационные сведения о пользователе (имена, почта и т.д.).
 
 ![](./pictures/auth_back_login_callback.png)
 
-4. Фронтенд отображает интерфейс аутентифицированного пользователя.
+1. Фронтенд отображает интерфейс аутентифицированного пользователя.
 
 ![](./pictures/auth_back_login_success.png)
-
-
-Диаграмма последовательно реализованного процесса аутентификации.
-
-![](./pictures/auth_back_pkce_sequence.png)
 
 
 **Workflow токенов**

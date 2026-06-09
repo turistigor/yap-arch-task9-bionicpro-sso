@@ -6,4 +6,4 @@
 auth/.venv
 reports/.venv
 data_pipeline/.venv
-.env
+.env*
